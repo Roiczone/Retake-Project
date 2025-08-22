@@ -68,3 +68,4 @@ public class SaleDAOImpl implements SaleDAO {
         return sales;
     }
 }
+
