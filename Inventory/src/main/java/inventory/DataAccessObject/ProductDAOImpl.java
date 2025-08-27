@@ -74,3 +74,42 @@ public class ProductDAOImpl implements inventory.DataAccessObject.ProductDAO {
         }
         return products;
     }
+
+
+@Override
+public void update(Product p) {
+    String sql = "UPDATE products SET sku=?, name=?, description=?, cost_price=?, sell_price=?, stock_quantity=?, reorder_threshold=?, reorder_amount=?, updated_at=? WHERE id=?";
+    try (Connection c = db.getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+
+        ps.setString(1, p.getSku());
+        ps.setString(2, p.getName());
+        ps.setString(3, p.getDescription());
+        ps.setDouble(4, p.getCostPrice());
+        ps.setDouble(5, p.getSellPrice());
+        ps.setInt(6, p.getStockQuantity());
+        ps.setInt(7, p.getReorderThreshold());
+        ps.setInt(8, p.getReorderAmount());
+        ps.setString(9, LocalDateTime.now().toString());
+        ps.setLong(10, p.getId());
+
+        int rows = ps.executeUpdate();
+        if (rows == 0) throw new inventory.Exception.DataAccessException("No product found with ID " + p.getId());
+
+    } catch (SQLException e) {
+        throw new src.main.java.inventory.demo.DataAccessObject.DataAccessException("Error updating product", e);
+    }
+}
+
+@Override
+public void delete(long id) {
+    String sql = "DELETE FROM products WHERE id=?";
+    try (Connection c = db.getConnection();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setLong(1, id);
+        ps.executeUpdate();
+    } catch (SQLException e) {
+        throw new inventory.Exception.DataAccessException("Error deleting product", e);
+    }
+}
+}
