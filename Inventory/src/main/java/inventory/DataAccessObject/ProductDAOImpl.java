@@ -97,7 +97,7 @@ public void update(Product p) {
         if (rows == 0) throw new inventory.Exception.DataAccessException("No product found with ID " + p.getId());
 
     } catch (SQLException e) {
-        throw new src.main.java.inventory.demo.DataAccessObject.DataAccessException("Error updating product", e);
+        throw new inventory.Exception.DataAccessException("Error updating product", e);
     }
 }
 
