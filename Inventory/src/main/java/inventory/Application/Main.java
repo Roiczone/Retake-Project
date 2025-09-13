@@ -12,7 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-public class MainApp extends Application {
+public class Main extends Application {
 
     private ProductService productService = new ProductService();
     private SaleService saleService = new SaleService();
@@ -23,23 +23,29 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        // Load products
+
         products = FXCollections.observableArrayList(productService.getAllProducts());
         table.setItems(products);
 
-        // Columns
+
         TableColumn<Product, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(data -> javafx.beans.property.SimpleStringProperty.stringExpression(data.getValue().getName()));
+        nameCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleStringProperty(data.getValue().getName())
+        );
 
         TableColumn<Product, Integer> stockCol = new TableColumn<>("Stock");
-        stockCol.setCellValueFactory(data -> javafx.beans.property.SimpleIntegerProperty.integerExpression(data.getValue().getStockQuantity()));
+        stockCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleIntegerProperty(data.getValue().getStockQuantity()).asObject()
+        );
 
         TableColumn<Product, Double> priceCol = new TableColumn<>("Price");
-        priceCol.setCellValueFactory(data -> javafx.beans.property.SimpleDoubleProperty.doubleExpression(data.getValue().getSellPrice()));
+        priceCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleDoubleProperty(data.getValue().getSellPrice()).asObject()
+        );
 
         table.getColumns().addAll(nameCol, stockCol, priceCol);
 
-        // Buttons
+
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
             Product p = new Product();

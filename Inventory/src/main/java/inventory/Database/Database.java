@@ -7,7 +7,15 @@ import java.sql.Statement;
 
 public class Database {
 
-    private static final String URL = "jdbc:sqlite:inventory.db";
+    private static final String URL= "jdbc:sqlite:C:/Users/roicz/OneDrive/Desktop/Meine Kurse/Software engineering/Retake-Project/Inventory/inventory.db";
+
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("SQLite JDBC driver not found! Make sure it's on the classpath.", e);
+        }
+    }
 
     public Database() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
