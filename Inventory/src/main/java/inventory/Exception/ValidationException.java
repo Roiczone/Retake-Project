@@ -1,4 +1,4 @@
 package inventory.Exception;
 
-public class ValidationException {
+public class ValidationException extends RuntimeException{
 }

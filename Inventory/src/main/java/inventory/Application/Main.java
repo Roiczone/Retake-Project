@@ -1,8 +1,10 @@
 package inventory.Application;
 
-import inventory.model.Product;
 import inventory.Service.ProductService;
 import inventory.Service.SaleService;
+import inventory.UI.MainController;
+import inventory.model.Product;
+import inventory.UI.MainController;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
 
 public class Main extends Application {
 
@@ -48,17 +51,34 @@ public class Main extends Application {
 
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
-            Product p = new Product();
-            p.setName("New Product");
-            p.setSku("SKU123");
-            p.setCostPrice(5.0);
-            p.setSellPrice(10.0);
-            p.setStockQuantity(20);
-            p.setReorderThreshold(5);
-            p.setReorderAmount(10);
+            MainController.showDialog(null).ifPresent(product -> {
+                productService.addProduct(product);
+                products.setAll(productService.getAllProducts());
+            });
+        });
 
-            productService.addProduct(p);
-            products.setAll(productService.getAllProducts());
+        Button editBtn = new Button("Edit Product");
+        editBtn.setOnAction(e -> {
+            Product selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                MainController.showDialog(selected).ifPresent(updated -> {
+                    productService.updateProduct(updated);
+                    products.setAll(productService.getAllProducts());
+                });
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Select a product to edit!").show();
+            }
+        });
+
+        Button deleteBtn = new Button("Delete Product");
+        deleteBtn.setOnAction(e -> {
+            Product selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                productService.deleteProduct(selected.getId());
+                products.setAll(productService.getAllProducts());
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Select a product to delete!").show();
+            }
         });
 
         Button saleBtn = new Button("Sell Product");
@@ -80,7 +100,8 @@ public class Main extends Application {
             }
         });
 
-        HBox buttons = new HBox(10, addBtn, saleBtn);
+        HBox buttons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn);
+
         buttons.setPadding(new Insets(10));
 
         VBox root = new VBox(10, table, buttons);
