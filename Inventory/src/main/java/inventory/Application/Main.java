@@ -4,7 +4,7 @@ import inventory.Service.ProductService;
 import inventory.Service.SaleService;
 import inventory.UI.MainController;
 import inventory.model.Product;
-import inventory.UI.MainController;
+import inventory.model.Sale;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,22 +14,23 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-
 public class Main extends Application {
 
     private ProductService productService = new ProductService();
     private SaleService saleService = new SaleService();
-    private ObservableList<Product> products;
 
-    private TableView<Product> table = new TableView<>();
+    private ObservableList<Product> products;
+    private TableView<Product> productTable = new TableView<>();
+
+    private ObservableList<Sale> sales;
+    private TableView<Sale> salesTable = new TableView<>();
 
     @Override
     public void start(Stage primaryStage) {
 
-
+        // --- Products Table ---
         products = FXCollections.observableArrayList(productService.getAllProducts());
-        table.setItems(products);
-
+        productTable.setItems(products);
 
         TableColumn<Product, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(data ->
@@ -46,12 +47,12 @@ public class Main extends Application {
                 new javafx.beans.property.SimpleDoubleProperty(data.getValue().getSellPrice()).asObject()
         );
 
-        table.getColumns().addAll(nameCol, stockCol, priceCol);
+        productTable.getColumns().addAll(nameCol, stockCol, priceCol);
 
-
+        // --- Product Buttons ---
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
-            MainController.showDialog(null).ifPresent(product -> {
+           MainController.showDialog(null).ifPresent(product -> {
                 productService.addProduct(product);
                 products.setAll(productService.getAllProducts());
             });
@@ -59,7 +60,7 @@ public class Main extends Application {
 
         Button editBtn = new Button("Edit Product");
         editBtn.setOnAction(e -> {
-            Product selected = table.getSelectionModel().getSelectedItem();
+            Product selected = productTable.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 MainController.showDialog(selected).ifPresent(updated -> {
                     productService.updateProduct(updated);
@@ -72,7 +73,7 @@ public class Main extends Application {
 
         Button deleteBtn = new Button("Delete Product");
         deleteBtn.setOnAction(e -> {
-            Product selected = table.getSelectionModel().getSelectedItem();
+            Product selected = productTable.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 productService.deleteProduct(selected.getId());
                 products.setAll(productService.getAllProducts());
@@ -83,11 +84,12 @@ public class Main extends Application {
 
         Button saleBtn = new Button("Sell Product");
         saleBtn.setOnAction(e -> {
-            Product selected = table.getSelectionModel().getSelectedItem();
+            Product selected = productTable.getSelectionModel().getSelectedItem();
             if (selected != null) {
                 try {
                     saleService.recordSale(selected, 1);
                     products.setAll(productService.getAllProducts());
+                    sales.setAll(saleService.getAllSales()); // refresh sales history
 
                     if (selected.getStockQuantity() <= selected.getReorderThreshold()) {
                         Alert alert = new Alert(Alert.AlertType.WARNING, "Low stock for: " + selected.getName());
@@ -100,14 +102,57 @@ public class Main extends Application {
             }
         });
 
-        HBox buttons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn);
+        HBox productButtons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn);
+        productButtons.setPadding(new Insets(10));
 
-        buttons.setPadding(new Insets(10));
+        VBox productLayout = new VBox(10, productTable, productButtons);
+        productLayout.setPadding(new Insets(10));
 
-        VBox root = new VBox(10, table, buttons);
-        root.setPadding(new Insets(10));
+        Tab productsTab = new Tab("Products", productLayout);
+        productsTab.setClosable(false);
 
-        primaryStage.setScene(new Scene(root, 600, 400));
+        // --- Sales Table ---
+        sales = FXCollections.observableArrayList(saleService.getAllSales());
+        salesTable.setItems(sales);
+
+        TableColumn<Sale, String> saleProductCol = new TableColumn<>("Product");
+        saleProductCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleStringProperty(data.getValue().getProduct().getName())
+        );
+
+        TableColumn<Sale, Integer> saleQtyCol = new TableColumn<>("Quantity");
+        saleQtyCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleIntegerProperty(data.getValue().getQuantity()).asObject()
+        );
+
+        TableColumn<Sale, Double> salePriceCol = new TableColumn<>("Price");
+        salePriceCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleDoubleProperty(data.getValue().getSalePrice()).asObject()
+        );
+
+        TableColumn<Sale, Double> saleTotalCol = new TableColumn<>("Total");
+        saleTotalCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleDoubleProperty(data.getValue().getTotal()).asObject()
+        );
+
+        TableColumn<Sale, String> saleDateCol = new TableColumn<>("Date");
+        saleDateCol.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleStringProperty(data.getValue().getSaleDate().toString())
+        );
+
+        salesTable.getColumns().addAll(saleProductCol, saleQtyCol, salePriceCol, saleTotalCol, saleDateCol);
+
+        VBox salesLayout = new VBox(10, salesTable);
+        salesLayout.setPadding(new Insets(10));
+
+        Tab salesTab = new Tab("Sales", salesLayout);
+        salesTab.setClosable(false);
+
+        // --- TabPane ---
+        TabPane tabPane = new TabPane();
+        tabPane.getTabs().addAll(productsTab, salesTab);
+
+        primaryStage.setScene(new Scene(tabPane, 800, 500));
         primaryStage.setTitle("Inventory Management");
         primaryStage.show();
     }
@@ -116,4 +161,3 @@ public class Main extends Application {
         launch(args);
     }
 }
-
