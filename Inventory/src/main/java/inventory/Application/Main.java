@@ -25,10 +25,13 @@ public class Main extends Application {
     private ObservableList<Sale> sales;
     private TableView<Sale> salesTable = new TableView<>();
 
+
+    private Label revenueLabel;
+    private Label profitLabel;
+
     @Override
     public void start(Stage primaryStage) {
 
-        // --- Products Table ---
         products = FXCollections.observableArrayList(productService.getAllProducts());
         productTable.setItems(products);
 
@@ -49,10 +52,10 @@ public class Main extends Application {
 
         productTable.getColumns().addAll(nameCol, stockCol, priceCol);
 
-        // --- Product Buttons ---
+
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
-           MainController.showDialog(null).ifPresent(product -> {
+            MainController.showDialog(null).ifPresent(product -> {
                 productService.addProduct(product);
                 products.setAll(productService.getAllProducts());
             });
@@ -89,7 +92,10 @@ public class Main extends Application {
                 try {
                     saleService.recordSale(selected, 1);
                     products.setAll(productService.getAllProducts());
-                    sales.setAll(saleService.getAllSales()); // refresh sales history
+                    sales.setAll(saleService.getAllSales());
+
+
+                    updateAnalytics();
 
                     if (selected.getStockQuantity() <= selected.getReorderThreshold()) {
                         Alert alert = new Alert(Alert.AlertType.WARNING, "Low stock for: " + selected.getName());
@@ -111,7 +117,7 @@ public class Main extends Application {
         Tab productsTab = new Tab("Products", productLayout);
         productsTab.setClosable(false);
 
-        // --- Sales Table ---
+
         sales = FXCollections.observableArrayList(saleService.getAllSales());
         salesTable.setItems(sales);
 
@@ -142,19 +148,28 @@ public class Main extends Application {
 
         salesTable.getColumns().addAll(saleProductCol, saleQtyCol, salePriceCol, saleTotalCol, saleDateCol);
 
-        VBox salesLayout = new VBox(10, salesTable);
+
+        revenueLabel = new Label("Total Revenue: $" + saleService.getTotalRevenue());
+        profitLabel = new Label("Total Profit: $" + saleService.getTotalProfit());
+
+        VBox salesLayout = new VBox(10, salesTable, revenueLabel, profitLabel);
         salesLayout.setPadding(new Insets(10));
 
         Tab salesTab = new Tab("Sales", salesLayout);
         salesTab.setClosable(false);
 
-        // --- TabPane ---
+
         TabPane tabPane = new TabPane();
         tabPane.getTabs().addAll(productsTab, salesTab);
 
         primaryStage.setScene(new Scene(tabPane, 800, 500));
         primaryStage.setTitle("Inventory Management");
         primaryStage.show();
+    }
+
+    private void updateAnalytics() {
+        revenueLabel.setText("Total Revenue: $" + saleService.getTotalRevenue());
+        profitLabel.setText("Total Profit: $" + saleService.getTotalProfit());
     }
 
     public static void main(String[] args) {
