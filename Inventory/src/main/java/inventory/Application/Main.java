@@ -108,7 +108,36 @@ public class Main extends Application {
             }
         });
 
-        HBox productButtons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn);
+        Button restockBtn = new Button("Restock Product");
+        restockBtn.setOnAction(e -> {
+            Product selected = productTable.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                TextInputDialog dialog = new TextInputDialog("10");
+                dialog.setTitle("Restock Product");
+                dialog.setHeaderText("Restock " + selected.getName());
+                dialog.setContentText("Enter quantity to add:");
+
+                dialog.showAndWait().ifPresent(input -> {
+                    try {
+                        int quantity = Integer.parseInt(input);
+                        if (quantity > 0) {
+                            selected.setStockQuantity(selected.getStockQuantity() + quantity);
+                            productService.updateProduct(selected);
+                            products.setAll(productService.getAllProducts());
+                        } else {
+                            new Alert(Alert.AlertType.WARNING, "Quantity must be positive!").show();
+                        }
+                    } catch (NumberFormatException ex) {
+                        new Alert(Alert.AlertType.ERROR, "Invalid number!").show();
+                    }
+                });
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Select a product to restock!").show();
+            }
+        });
+
+
+        HBox productButtons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn, restockBtn);
         productButtons.setPadding(new Insets(10));
 
         VBox productLayout = new VBox(10, productTable, productButtons);
