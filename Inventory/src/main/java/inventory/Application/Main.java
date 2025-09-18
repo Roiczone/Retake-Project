@@ -53,6 +53,42 @@ public class Main extends Application {
         productTable.getColumns().addAll(nameCol, stockCol, priceCol);
 
 
+        ComboBox<String> sortFilterBox = new ComboBox<>();
+        sortFilterBox.getItems().addAll(
+                "Default",
+                "Stock (Low → High)",
+                "Stock (High → Low)",
+                "Profit Margin (High → Low)",
+                "Low Stock Only"
+        );
+        sortFilterBox.setValue("Default");
+
+        sortFilterBox.setOnAction(e -> {
+            String choice = sortFilterBox.getValue();
+            switch (choice) {
+                case "Stock (Low → High)" -> products.setAll(
+                        productService.getAllProducts().stream()
+                                .sorted((a, b) -> Integer.compare(a.getStockQuantity(), b.getStockQuantity()))
+                                .toList()
+                );
+                case "Stock (High → Low)" -> products.setAll(
+                        productService.getAllProducts().stream()
+                                .sorted((a, b) -> Integer.compare(b.getStockQuantity(), a.getStockQuantity()))
+                                .toList()
+                );
+                case "Profit Margin (High → Low)" -> products.setAll(
+                        productService.getAllProducts().stream()
+                                .sorted((a, b) -> Double.compare(b.getProfitMargin(), a.getProfitMargin()))
+                                .toList()
+                );
+                case "Low Stock Only" -> products.setAll(
+                        productService.getLowStockProducts()
+                );
+                default -> products.setAll(productService.getAllProducts());
+            }
+        });
+
+
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
             MainController.showDialog(null).ifPresent(product -> {
