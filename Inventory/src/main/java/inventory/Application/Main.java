@@ -25,7 +25,6 @@ public class Main extends Application {
     private ObservableList<Sale> sales;
     private TableView<Sale> salesTable = new TableView<>();
 
-
     private Label revenueLabel;
     private Label profitLabel;
 
@@ -52,6 +51,30 @@ public class Main extends Application {
 
         productTable.getColumns().addAll(nameCol, stockCol, priceCol);
 
+        // 🔹 Highlight low-stock rows in red
+        productTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(Product product, boolean empty) {
+                super.updateItem(product, empty);
+                if (product == null || empty) {
+                    setStyle("");
+                } else if (product.getStockQuantity() <= product.getReorderThreshold()) {
+                    setStyle("-fx-background-color: #ffcccc;"); // light red
+                } else {
+                    setStyle("");
+                }
+            }
+        });
+
+        // 🔹 Show popup alert if low-stock products exist at startup
+        var lowStockProducts = productService.getLowStockProducts();
+        if (!lowStockProducts.isEmpty()) {
+            StringBuilder msg = new StringBuilder("Low stock detected:\n");
+            lowStockProducts.forEach(p ->
+                    msg.append(p.getName()).append(" (").append(p.getStockQuantity()).append(" left)\n")
+            );
+            new Alert(Alert.AlertType.WARNING, msg.toString()).show();
+        }
 
         ComboBox<String> sortFilterBox = new ComboBox<>();
         sortFilterBox.getItems().addAll(
@@ -87,7 +110,6 @@ public class Main extends Application {
                 default -> products.setAll(productService.getAllProducts());
             }
         });
-
 
         Button addBtn = new Button("Add Product");
         addBtn.setOnAction(e -> {
@@ -125,24 +147,40 @@ public class Main extends Application {
         saleBtn.setOnAction(e -> {
             Product selected = productTable.getSelectionModel().getSelectedItem();
             if (selected != null) {
-                try {
-                    saleService.recordSale(selected, 1);
-                    products.setAll(productService.getAllProducts());
-                    sales.setAll(saleService.getAllSales());
+                TextInputDialog dialog = new TextInputDialog("1");
+                dialog.setTitle("Sell Product");
+                dialog.setHeaderText("Sell " + selected.getName());
+                dialog.setContentText("Enter quantity to sell:");
 
+                dialog.showAndWait().ifPresent(input -> {
+                    try {
+                        int quantity = Integer.parseInt(input);
+                        if (quantity > 0) {
+                            saleService.recordSale(selected, quantity);
+                            products.setAll(productService.getAllProducts());
+                            sales.setAll(saleService.getAllSales());
 
-                    updateAnalytics();
+                            updateAnalytics();
 
-                    if (selected.getStockQuantity() <= selected.getReorderThreshold()) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING, "Low stock for: " + selected.getName());
-                        alert.show();
+                            if (selected.getStockQuantity() <= selected.getReorderThreshold()) {
+                                Alert alert = new Alert(Alert.AlertType.WARNING,
+                                        "Low stock for: " + selected.getName());
+                                alert.show();
+                            }
+                        } else {
+                            new Alert(Alert.AlertType.WARNING, "Quantity must be positive!").show();
+                        }
+                    } catch (NumberFormatException ex) {
+                        new Alert(Alert.AlertType.ERROR, "Invalid number!").show();
+                    } catch (RuntimeException ex) {
+                        new Alert(Alert.AlertType.ERROR, ex.getMessage()).show();
                     }
-                } catch (RuntimeException ex) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, ex.getMessage());
-                    alert.show();
-                }
+                });
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Select a product to sell!").show();
             }
         });
+
 
         Button restockBtn = new Button("Restock Product");
         restockBtn.setOnAction(e -> {
@@ -172,16 +210,14 @@ public class Main extends Application {
             }
         });
 
-
         HBox productButtons = new HBox(10, addBtn, editBtn, deleteBtn, saleBtn, restockBtn);
         productButtons.setPadding(new Insets(10));
 
-        VBox productLayout = new VBox(10, productTable, productButtons);
+        VBox productLayout = new VBox(10, sortFilterBox, productTable, productButtons);
         productLayout.setPadding(new Insets(10));
 
         Tab productsTab = new Tab("Products", productLayout);
         productsTab.setClosable(false);
-
 
         sales = FXCollections.observableArrayList(saleService.getAllSales());
         salesTable.setItems(sales);
@@ -213,7 +249,6 @@ public class Main extends Application {
 
         salesTable.getColumns().addAll(saleProductCol, saleQtyCol, salePriceCol, saleTotalCol, saleDateCol);
 
-
         revenueLabel = new Label("Total Revenue: $" + saleService.getTotalRevenue());
         profitLabel = new Label("Total Profit: $" + saleService.getTotalProfit());
 
@@ -222,7 +257,6 @@ public class Main extends Application {
 
         Tab salesTab = new Tab("Sales", salesLayout);
         salesTab.setClosable(false);
-
 
         TabPane tabPane = new TabPane();
         tabPane.getTabs().addAll(productsTab, salesTab);
