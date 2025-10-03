@@ -13,7 +13,7 @@ The student acknowledges and agrees that the use of AI is strictly prohibited du
 
 Type your name here to agree:
 
-.................................. *type your name to agree*
+.......Zone Kenne Roic........................... *type your name to agree*
 
 
 ## Checklist before handing in your work
@@ -32,7 +32,7 @@ Good luck with your evaluation!
 
 ## Description (overall vision of the project)
 
-*your text*
+*My project consist of implementing an inventory system for a retail shop, where the user/administrator can apply the CRUD operations, sale product, track sale transactions, revenues and also benefit. Additionally, the use could filter their product display using a dropdown menu.*
 
 ## Link to your GIT Project
 
