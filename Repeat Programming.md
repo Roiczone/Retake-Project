@@ -36,29 +36,34 @@ Good luck with your evaluation!
 
 ## Link to your GIT Project
 
-*your text*
+*https://github.com/Roiczone/Retake-Project*
 
 ## TECH STACK
 
-*your text*
+*Frontend/UI: JvaFx
+Backend: Java
+Database: Sqlite using JDBC
+Architecture: Data Access Object*
 
 
 ## What did you achieve? (list each of the functionalities)
 
-*your text*
+*in the cost of implementing this project, I was able to achieve the following:
+A full functional inventory system, a good user interface, database accessing and connection and also error handling and validation*
 
 
 ## Pick 3 of the functionalities
 #### for each of the 3 functionalities link to the class that is responsible for it and explain the role of this and other classes in combination to fulfill the functionality
 
 ### 1
-*your text*
+*CRUD operations*
 
 ### 2
-*your text*
+*Database connection*
 
 ### 3
-*your text*
+*Data Object Accessing
+In order to easilly access to the object stored in my database, I implement 2 classes, one was the ProductDAO which holds the ways in which I use to access the objects and the secont one ProductDAOImpl where all the accessing methos where implemented.*
 
 | Total Achievable Points | Points Reached During Grading |
 |------------------------|-------------------------------|
